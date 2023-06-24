@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 import json
 import logging
-from ml import text_processing, create_prompt, decode_text
+from ml import text_processing, create_summary_prompt, make_seo_optimization
 from EdgeGPT.EdgeGPT import Chatbot, ConversationStyle
 from pydantic import BaseModel
 
@@ -25,17 +25,36 @@ app.on_event("shutdown")(shutdown)
 @app.post("/ask")
 async def ask_gpt(request: Request):
     bot = await Chatbot.create(cookies=cookies)
-    text = text_processing(request.text)
-    requests = create_prompt(text, "Prompt.txt")
+
+    requests = create_summary_prompt(
+        request.text, "prompts/summary_prompt.txt")
     responses = []
     for index, request in enumerate(requests):
-        print("sending request")
+        print(f"sending {index} request")
         responses.append(await bot.ask(
-                prompt=request,
-                conversation_style=ConversationStyle.creative,
-                simplify_response=True,
+            prompt=request,
+            conversation_style=ConversationStyle.creative,
+            simplify_response=True,
         ))
-    return responses
+    ###
+    return "".join([i["text"] for i in responses])
+
+
+@app.post("/seo")
+async def ask_gpt(request: Request):
+    bot = await Chatbot.create(cookies=cookies)
+
+    requests = make_seo_optimization(request.text)
+    for index, request in enumerate(requests):
+        print(f"sending {index} request")
+        responses.append(await bot.ask(
+            prompt=request,
+            conversation_style=ConversationStyle.creative,
+            simplify_response=True,
+        ))
+
+    return "".join([i["text"] for i in responses])
+
 
 """
 {
