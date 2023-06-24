@@ -43,7 +43,7 @@ async def ask_gpt(request: Request):
 @app.post("/seo")
 async def ask_gpt(request: Request):
     bot = await Chatbot.create(cookies=cookies)
-
+    responses = []
     requests = make_seo_optimization(request.text)
     for index, request in enumerate(requests):
         print(f"sending {index} request")
